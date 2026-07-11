@@ -29,18 +29,15 @@ def generate_key_pair():
     return private_key, public_key
 
 def serialize_public_key(public_key):
-    """Export public key in DER format (SubjectPublicKeyInfo)."""
     return public_key.public_bytes(
         encoding=serialization.Encoding.DER,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
 def deserialize_public_key(der_bytes):
-    """Load a public key from DER bytes."""
     return serialization.load_der_public_key(der_bytes, backend=default_backend())
 
 def compute_shared_secret(private_key, peer_public_key_bytes):
-    """Compute shared secret and derive a 32‑byte HMAC key via HKDF."""
     peer_public = deserialize_public_key(peer_public_key_bytes)
     shared = private_key.exchange(peer_public)
     hkdf = HKDF(
@@ -50,4 +47,4 @@ def compute_shared_secret(private_key, peer_public_key_bytes):
         info=b'hmac-key-for-coverless-stego',
         backend=default_backend()
     )
-    return hkdf.derive(shared)  # 32 bytes, ready for HMAC
+    return hkdf.derive(shared)
