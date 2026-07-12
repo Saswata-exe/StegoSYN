@@ -1,6 +1,5 @@
 """
-Coverless Steganography GUI – with Diffie‑Hellman key exchange,
-pure DWT features, HMAC, and encryption.
+StegoSYN – Coverless Steganography with Diffie‑Hellman Key Exchange
 """
 
 import sys
@@ -24,7 +23,7 @@ except ImportError as e:
 class CoverlessSteganoApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Coverless Steganography – DWT + Pure Features")
+        self.root.title("StegoSYN")
         self.root.geometry("1300x850")
         self.root.configure(bg='#2c3e50')
         
@@ -69,17 +68,14 @@ class CoverlessSteganoApp:
         # Title
         title = tk.Frame(main, bg=self.bg)
         title.pack(fill=tk.X, pady=(0,20))
-        tk.Label(title, text="🔐 Coverless Steganography – DWT + Pure Features",
-                font=("Arial",20,"bold"), bg=self.bg, fg=self.primary).pack()
-        tk.Label(title, text="Diffie‑Hellman key exchange → DWT feature mapping",
-                font=("Arial",11), bg=self.bg, fg=self.fg).pack()
+        tk.Label(title, text="🔐 StegoSYN",
+                font=("Arial",28,"bold"), bg=self.bg, fg=self.primary).pack()
         
         self.notebook = ttk.Notebook(main)
         self.notebook.pack(fill=tk.BOTH, expand=True)
         self.create_dh_tab()
         self.create_embed_tab()
         self.create_extract_tab()
-        self.create_help_tab()
         
         # Status bar
         status = tk.Frame(main, bg=self.bg, height=30)
@@ -141,18 +137,10 @@ class CoverlessSteganoApp:
         self.dh_hmac_status = tk.Label(use_frame, text="HMAC key not set", wraplength=300, bg=self.bg, fg='lightgray')
         self.dh_hmac_status.pack(fill=tk.X, pady=5)
         
-        info_frame = ttk.LabelFrame(right, text="How DH Works", padding=10)
+        # Right side – empty (removed info)
+        info_frame = ttk.LabelFrame(right, text="", padding=10)
         info_frame.pack(fill=tk.BOTH, expand=True)
-        info = """
-1. Both parties generate their own key pair.
-2. Each exports their public key to a file.
-3. They exchange these files (e.g., via email).
-4. Each imports the other's public key.
-5. Both compute the shared secret – it will be identical.
-6. This shared secret is used as the HMAC key.
-7. The HMAC key protects the mapping file integrity.
-        """
-        tk.Label(info_frame, text=info, font=("Courier",10), bg=self.bg, fg=self.fg, justify=tk.LEFT).pack(anchor=tk.W, padx=10, pady=10)
+        tk.Label(info_frame, text="", bg=self.bg).pack()
         
     # ---------- DH Callbacks ----------
     def dh_generate(self):
@@ -368,26 +356,6 @@ class CoverlessSteganoApp:
         self.extract_details = scrolledtext.ScrolledText(details_frame, height=15, font=("Courier",9),
                 bg='#1a1a1a', fg='#00ff00')
         self.extract_details.pack(fill=tk.BOTH, expand=True)
-        
-    # ---------- Help Tab ----------
-    def create_help_tab(self):
-        help_frame = tk.Frame(self.notebook, bg=self.bg)
-        self.notebook.add(help_frame, text="❓ Help")
-        text = """
-        COVERLESS STEGANOGRAPHY – DWT + PURE FEATURES
-
-        This system uses:
-        1. 2-Level DWT (Haar) to split image into LL2, LH2, HL2, HH2.
-        2. From each sub‑band, extract 3 features: Mean, Variance, Energy.
-        3. Store these feature vectors with the corresponding secret parts.
-        4. During extraction, compute the same features from the received image.
-        5. Use normalized Euclidean distance to find the nearest stored vector.
-        6. If the distance is below a threshold, the secret part is recovered.
-
-        This approach tolerates JPEG compression, Prewitt filtering,
-        Mean filtering, and Max filtering.
-        """
-        tk.Label(help_frame, text=text, font=("Courier",11), bg=self.bg, fg=self.fg, justify=tk.LEFT).pack(padx=20,pady=20)
         
     # ---------- Menu ----------
     def setup_menu(self):
@@ -614,14 +582,13 @@ Embedded percentage: {mapping_dict.get('embed_percent', 100):.1f}%
 
 Files saved in: {out_dir or os.getcwd()}
 - mapping_{mapping_dict['feature_hash']}.pkl
+- embedding_visualization.png
 """
         if key_used:
-            res += f"- mapping_{mapping_dict['feature_hash']}.sig (HMAC signature)\n"
+            res += "- (Encrypted with DH key + pHash)\n"
         else:
-            res += "- No signature created (HMAC key not used)\n"
+            res += "- No encryption (HMAC key not used)\n"
         res += "\nSend the ORIGINAL image and the mapping file to the receiver."
-        if key_used:
-            res += "\nAlso send the .sig file. The receiver must have the same HMAC key."
         self.results_text.insert(tk.END, res)
         self.results_text.config(state='disabled')
         self.update_status("Embedding complete")
@@ -675,9 +642,9 @@ Confidence: {confidence:.2f}%
 Secret hash: {hash_str}
 """
         if key_used:
-            details += "HMAC verification: ✅ Mapping file is authentic\n"
+            details += "DH key decryption: ✅ Mapping decrypted\n"
         else:
-            details += "HMAC verification: ⚠️ Not performed (no key)\n"
+            details += "DH key decryption: ⚠️ Not performed (no key)\n"
         self.extract_details.delete(1.0, tk.END)
         self.extract_details.insert(tk.END, details)
         self.update_status(f"Extraction complete, confidence {confidence:.1f}%")
@@ -696,7 +663,6 @@ Secret hash: {hash_str}
         
     def run(self):
         self.root.mainloop()
-
 
 if __name__ == "__main__":
     root = tk.Tk()
